@@ -569,13 +569,35 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    stride = conv_param['stride']
+    pad = conv_param['pad']
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    
+    assert (H - HH + 2 * pad) % stride == 0
+    assert (W - WW + 2 * pad) % stride == 0
+    H_prime = int(1 + (H + 2 * pad - HH) / stride)
+    W_prime = int(1 + (W + 2 * pad - WW) / stride)
+    
+    out = np.zeros((N, F, H_prime, W_prime))
+
+    
+    padded_x = np.pad(x, ((0,0), (0,0),(pad,pad),(pad,pad)), 'constant')
+    
+    for k in range(N):
+        for p in range(F):
+            for i in range(H_prime):
+                for j in range(W_prime):
+                    local_in = padded_x[k,:,i*stride:i*stride+HH,j*stride:j*stride+WW]
+                    out[k,p,i,j] = np.sum(local_in * w[p,:,:,:]) + b[p]
+                
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-    cache = (x, w, b, conv_param)
+    cache = (padded_x, w, b, conv_param)
     return out, cache
 
 
