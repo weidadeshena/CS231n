@@ -1,2 +1,2 @@
 # CS231n
-My CS231n assignment solution
+My CS231n 2019 assignment solutions
