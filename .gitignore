@@ -1,1 +1,3 @@
 *.tar.gz.1
+**/datasets
+**/__pycache__
