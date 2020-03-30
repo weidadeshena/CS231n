@@ -643,8 +643,8 @@ def conv_backward_naive(dout, cache):
         for f in range(F):
             for j in range(0, H_prime):
                 for i in range(0, W_prime):
-                    dw[f] += padded_x[n, :, j*stride:j *stride+HH, i*stride:i*stride+WW] * dout[n, f, j, i]
-                    padded_dx[n, :, j*stride:j*stride+HH, i*stride:i*stride + WW] += w[f] * dout[n, f, j, i]
+                    dw[f] += padded_x[n, :, j*stride:j*stride+HH, i*stride:i*stride+WW] * dout[n, f, j, i]
+                    padded_dx[n, :, j*stride:j*stride+HH, i*stride:i*stride+WW] += w[f] * dout[n, f, j, i]
                     
     #Remove padding for dx
     dx = padded_dx[:,:,pad:-pad,pad:-pad]
@@ -772,6 +772,7 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     - cache: Values needed for the backward pass
     """
     out, cache = None, None
+    
 
     ###########################################################################
     # TODO: Implement the forward pass for spatial batch normalization.       #
@@ -782,7 +783,10 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    x = x.transpose(0,2,3,1).reshape(N*H*W, C)
+    out, cache = batchnorm_forward(x, gamma, beta, bn_param)
+    out = out.reshape(N, H, W, C).transpose(0,3,1,2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -816,7 +820,10 @@ def spatial_batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = dout.shape
+    dout = dout.transpose(0,2,3,1).reshape(N*H*W, C)
+    dx, dgamma, dbeta = batchnorm_backward_alt(dout, cache)
+    dx = dx.reshape(N, H, W, C).transpose(0, 3, 1, 2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
