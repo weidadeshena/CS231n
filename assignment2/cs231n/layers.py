@@ -634,35 +634,18 @@ def conv_backward_naive(dout, cache):
     padded_x = np.pad(x, ((0,0), (0,0),(pad,pad),(pad,pad)), 'constant')
     
     dw = np.zeros(w.shape)
-    for n in range(N):    
-        for f in range(F):   
-            for i in range(HH): 
-                for j in range(WW):
-                    for k in range(H_prime):
-                        for l in range(W_prime):
-                            for c in range(C): 
-                                dw[f,c,i,j] += padded_x[n, c, stride*i+k, stride*j+l] * dout[n, f, k, l]
                  
     padded_dout = np.pad(dout, ((0,), (0,), (WW-1,), (HH-1, )), 'constant')
     
-    dx = np.zeros(x.shape)
-    # easier to calculate when padded
-    padded_dx = np.pad(dx, ((0,), (0,), (pad,), (pad, )), 'constant')
-
-    # filp w (F, C, HH, WW)
-    w_ = np.zeros_like(w)
-    for i in range(HH):
-        for j in range(WW):
-            w_[:,:,i,j] = w[:,:,HH-i-1,WW-j-1]
+    padded_dx = np.zeros(padded_x.shape)
     
-    for n in range(N):       
-        for f in range(F):   
-            for i in range(H+2*pad): # since padding is included
-                for j in range(W+2*pad):
-                    for k in range(HH):
-                        for l in range(WW):
-                            for c in range(C):
-                                padded_dx[n,c,i,j] += padded_dout[n, f, i+k, j+l] * w_[f, c, k, l]
+    for n in range(N):
+        for f in range(F):
+            for j in range(0, H_prime):
+                for i in range(0, W_prime):
+                    dw[f] += padded_x[n, :, j*stride:j *stride+HH, i*stride:i*stride+WW] * dout[n, f, j, i]
+                    padded_dx[n, :, j*stride:j*stride+HH, i*stride:i*stride + WW] += w[f] * dout[n, f, j, i]
+                    
     #Remove padding for dx
     dx = padded_dx[:,:,pad:-pad,pad:-pad]
     
