@@ -112,8 +112,6 @@ class ThreeLayerConvNet(object):
         scores, fc2_cache = affine_forward(fc1, W3, b3)
         cache_history.append(fc2_cache)
         L2reg = 0.5 * self.reg * (np.sum(W1**2) + np.sum(W2**2) + np.sum(W3**2))
-        
-        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

@@ -863,7 +863,21 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    size = (N*G, C//G*H*W)
+    x = x.reshape(size).T
+    gamma = gamma.reshape(1, C, 1, 1)
+    beta = beta.reshape(1, C, 1, 1)
+    
+    # similar to batch normalization
+    mu = x.mean(axis=0)
+    var = x.var(axis=0) + eps
+    std = np.sqrt(var)
+    x_hat = (x - mu)/std
+    x_hat = x_hat.T.reshape(N, C, H, W)
+    out = gamma * x_hat + beta
+    # save values for backward call
+    cache = (std, gamma, x_hat, size)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -892,8 +906,22 @@ def spatial_groupnorm_backward(dout, cache):
     # This will be extremely similar to the layer norm implementation.        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    std, gamma, x_hat, size = cache
+    N, C, H, W = dout.shape
+    dbeta = dout.sum(axis=(0,2,3), keepdims=True)
+    dgamma = np.sum(dout * x_hat, axis=(0,2,3), keepdims=True)
 
-    pass
+    # reshape tensors
+    x_hat = x_hat.reshape(size).T
+    M = x_hat.shape[0]
+    df_dx_hat = dout * gamma
+    df_dx_hat = df_dx_hat.reshape(size).T
+    # copy from batch normalization backward alt
+    sum_df_dx_hat = np.sum(df_dx_hat,axis=0)
+    dx = df_dx_hat - sum_df_dx_hat/M - np.sum(df_dx_hat*x_hat, axis=0) * x_hat/M
+    dx /= std
+    dx = dx.T.reshape(N, C, H, W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
